@@ -7,12 +7,8 @@ from magic.magic import MagicWorker
 #import main
 #from flask.ext.uploads import UploadSet, configure_uploads, IMAGES
 
-app = Flask(__name__, static_folder='./fullstack_template/static/dist', template_folder='./fullstack_template/static')
+app = Flask(__name__)
 answer =""
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 
 @app.route('/data') # take note of this decorator syntax, it's a common pattern
 def hello():
@@ -51,7 +47,7 @@ def postJsonHandler():
     return  Response( status=200)
 
 @app.route('/answer', methods = ['GET'])
-def postJsonHandler():
+def answerBot():
     jsonResp =  answer
     print(jsonify(jsonResp))
     return jsonify(jsonResp)
