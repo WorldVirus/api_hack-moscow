@@ -11,7 +11,7 @@ class MagicWorker():
 
     def __get_classes__(self):
         classes, answers = [], []
-        with open('clusters.txt', 'r') as f:
+        with open('./magic/clusters.txt', 'r') as f:
             for line in f:
                 tmp = list(line.split(', '))
                 tmp[-1] = tmp[-1].replace('\n', '')
@@ -20,7 +20,7 @@ class MagicWorker():
         return classes, answers
 
     def __get_stopwords__(self):
-        with open('./stopwords.txt', 'r') as f:
+        with open('./magic/stopwords.txt', 'r') as f:
             stopwords = list(f.read().split('\n'))
         return stopwords
 
