@@ -1,8 +1,6 @@
 import random
-from flask import Flask, render_template
-from flask import jsonify
-from flask import request
-from flask import Response
+from flask import Flask, render_template,json,jsonify,request,Response
+
 from magic.magic import MagicWorker
 from flask_cors import CORS, cross_origin
 
@@ -49,9 +47,13 @@ def postJsonHandler():
         req = f.readlines()[-1]
     ans = magic.predict(req) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     answer = ans
-    print(ans)
-    #end magic time!
-    return  Response( status=200)
+    response = app.response_class(
+        response=json.dumps({'answer_value': ans}),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
 
 @app.route('/answer', methods = ['GET'])
 def answerBot():
