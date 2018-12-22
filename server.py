@@ -10,7 +10,7 @@ from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 answer =""
 cors = CORS(app)
-
+counter = 0
 app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/data') # take note of this decorator syntax, it's a common pattern
 @cross_origin()
@@ -33,6 +33,9 @@ def get_hello():
 @app.route('/postjson', methods = ['POST'])
 @cross_origin()
 def postJsonHandler():
+    print("Request data %s",request.data)
+    app.logger.debug('Body: %s', request.get_data())
+    app.logger.debug("Request Headers %s", request.headers)
     print (request.is_json)
     content = request.get_json()
     print (content["speech_data"])
@@ -54,7 +57,18 @@ def postJsonHandler():
     )
     return response
 
-
+@app.route('/mediataker', methods = ['POST'])
+@cross_origin()
+def media_request():
+    print("Request data %s",request.data)
+    app.logger.debug('Body: %s', request.get_data())
+    app.logger.debug("Request Headers %s", request.headers)
+    print(counter)
+    f = open('./data_voice/speec.wav', 'w+b')
+    f.write(request.data)
+    f.close()
+    return "request"
+    
 @app.route('/answer', methods = ['GET'])
 def answerBot():
     jsonResp =  answer
