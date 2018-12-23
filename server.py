@@ -16,9 +16,9 @@ path_to_dll = ''
 if platform.system() == 'Windows':
     path_to_dll = 'magic/OpenVokaturi/lib/open/win/OpenVokaturi-3-0-win64.dll'
 elif platform.system() == 'Linux':
-    path_to_dll = 'magic/OpenVokaturi/lib/open/macos/OpenVokaturi-3-0-mac64.o'
-else:
     path_to_dll = 'magic/OpenVokaturi/lib/open/linux/OpenVokaturi-3-0-linux64.so'
+else:
+    path_to_dll = 'magic/OpenVokaturi/lib/open/macos/OpenVokaturi-3-0-mac64.o'
 
 speech_emotion = SpeechEmotionDetector(path_to_dll)
 magic = MagicWorker()
