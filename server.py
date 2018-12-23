@@ -4,8 +4,34 @@ from flask import Flask, render_template,json,jsonify,request,Response
 from magic.magic import MagicWorker
 from flask_cors import CORS, cross_origin
 
+from magic.emotions import SpeechEmotionDetector
+
+import platform
+import operator
 #import main
 #from flask.ext.uploads import UploadSet, configure_uploads, IMAGES
+
+
+path_to_dll = ''
+if platform.system() == 'Windows':
+    path_to_dll = 'magic/OpenVokaturi/lib/open/win/OpenVokaturi-3-0-win64.dll'
+else:
+    path_to_dll = 'magic/OpenVokaturi/lib/open/linux/OpenVokaturi-3-0-linux64.so'
+
+speech_emotion = SpeechEmotionDetector(path_to_dll)
+magic = MagicWorker()
+
+emotions = {
+    "Neutral" : 0,
+    "Happy" : 0,
+    "Sad" : 0,
+    "Angry" : 0,
+    "Fear" : 0,
+    "Not enough sonorancy to determine emotions" : 0,
+    "len" : 0
+}
+
+_count_of_messages = 0
 
 app = Flask(__name__)
 answer =""
@@ -45,11 +71,12 @@ def postJsonHandler():
   #  main.classify_txt("finalized_model.sav","./data_text/speech.txt")
     
     #magic time!
-    magic = MagicWorker()
+    
     with open('./data_text/speech.txt', 'r') as f:
         req = f.readlines()[-1]
     ans = magic.predict(req) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     answer = ans
+
     response = app.response_class(
         response=json.dumps({'answer_value': ans}),
         status=200,
@@ -67,8 +94,29 @@ def media_request():
     f = open('./data_voice/speec.wav', 'w+b')
     f.write(request.data)
     f.close()
+    path_to_wav = './data_voice/speec.wav'
+    pred = speech_emotion.predict(path_to_wav)
+
+    max_index = max(pred.items(), key=operator.itemgetter(1))[0]
+
+    emotions[max_index] += 1
+    #_count_of_messages = _count_of_messages + 1
+    emotions['len'] += 1
+
     return "request"
-    
+
+'''
+
+код, который должен выполниться при окончании диалога
+
+ln = emotions['len']
+for key in emotions.keys():
+    emotions[key] = int(emotions[key] / ln * 100)
+
+emotions - словарь с процентами эмойций на диалог. Смотри выше, какие там ключи
+
+'''
+
 @app.route('/answer', methods = ['GET'])
 def answerBot():
     jsonResp =  answer
