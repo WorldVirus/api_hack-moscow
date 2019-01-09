@@ -17,3 +17,4 @@ scipy==1.1.0
 virtualenv==16.0.0
 Werkzeug==0.14.1
 gensim==3.6.0
+pyaudio==0.2.11

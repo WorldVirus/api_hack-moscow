@@ -12,7 +12,28 @@ import platform
 import operator
 #import main
 #from flask.ext.uploads import UploadSet, configure_uploads, IMAGES
+from sys import byteorder
+from array import array
+from struct import pack
 
+import pyaudio
+import wave
+
+THRESHOLD = 500
+CHUNK_SIZE = 1024
+FORMAT = pyaudio.paInt16
+RATE = 44100
+
+def write_to_file(path, data):
+    sample_width = 2
+    data = pack('<' + ('h'*len(data)), *data)
+
+    wf = wave.open(path, 'wb')
+    wf.setnchannels(1)
+    wf.setsampwidth(sample_width)
+    wf.setframerate(RATE)
+    wf.writeframes(data)
+    wf.close()
 
 path_to_dll = ''
 if platform.system() == 'Windows':
@@ -107,10 +128,10 @@ def media_request():
     print("Request data %s",request.data)
     app.logger.debug('Body: %s', request.get_data())
     app.logger.debug("Request Headers %s", request.headers)
-    test = np.array(request.data)
+    #test = np.array(request.data)
     print("Request size_file %d",size_chunk)
     print("Request request.data %d",request.data)
-    scipy.io.wavfile.write('./data_voice/speec.wav',size_chunk ,test)
+    write_to_file('./data_voice/speec.wav', request.data)
     # f = open('./data_voice/speec.wav', 'w+b')
     # f.write(request.data)
     # f.close()
