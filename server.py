@@ -1,4 +1,6 @@
-import random
+import random,scipy
+import numpy as np
+
 from flask import Flask, render_template,json,jsonify,request,Response
 
 from magic.magic import MagicWorker
@@ -18,7 +20,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Linux':
     path_to_dll = 'magic/OpenVokaturi/lib/open/linux/OpenVokaturi-3-0-linux64.so'
 else:
-    path_to_dll = 'magic/OpenVokaturi/lib/open/macos/OpenVokaturi-3-0-mac64.o'
+    path_to_dll = 'magic/OpenVokaturi/lib/open/macos/OpenVokaturi-3-0-mac64.dylib'
 
 speech_emotion = SpeechEmotionDetector(path_to_dll)
 magic = MagicWorker()
@@ -37,6 +39,7 @@ _count_of_messages = 0
 
 app = Flask(__name__)
 answer =""
+size_chunk = 0
 cors = CORS(app)
 counter = 0
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -86,16 +89,31 @@ def postJsonHandler():
     )
     return response
 
+@app.route('/size_taker', methods = ['POST'])
+@cross_origin()
+def size_request():
+
+    print (request.is_json)
+    print(request.get_json())
+    audio_size = request.get_json()
+    size_chunk  = audio_size["size_chunk"]
+    print("SIZE: %d",size_chunk)
+
+    return "200"
+  
 @app.route('/mediataker', methods = ['POST'])
 @cross_origin()
 def media_request():
     print("Request data %s",request.data)
     app.logger.debug('Body: %s', request.get_data())
     app.logger.debug("Request Headers %s", request.headers)
-    print(counter)
-    f = open('./data_voice/speec.wav', 'w+b')
-    f.write(request.data)
-    f.close()
+    test = np.array(request.data)
+    print("Request size_file %d",size_chunk)
+    print("Request request.data %d",request.data)
+    scipy.io.wavfile.write('./data_voice/speec.wav',size_chunk ,test)
+    # f = open('./data_voice/speec.wav', 'w+b')
+    # f.write(request.data)
+    # f.close()
     path_to_wav = './data_voice/speec.wav'
     pred = speech_emotion.predict(path_to_wav)
 
@@ -106,6 +124,23 @@ def media_request():
     emotions['len'] += 1
 
     return "request"
+
+  
+@app.route('/emotion', methods = ['GET'])
+@cross_origin()
+def emotion_request():
+    ln = emotions['len']
+    for key in emotions.keys():
+        emotions[key] = int(emotions[key] / ln * 100)
+
+    response = app.response_class(
+        response=json.dumps({'neutral': emotions["Neutral"]
+        ,'happy':emotions["Happy"],'sad':emotions["Sad"],'angry':emotions["Angry"],'fear':emotions["Fear"],'not_enough':emotions["Not enough sonorancy to determine emotions"],'len':emotions["len"]}),
+        status=200,
+        mimetype='application/json'
+    )
+    return "request"
+
 
 '''
 
