@@ -24,10 +24,13 @@ CHUNK_SIZE = 1024
 FORMAT = pyaudio.paInt16
 RATE = 44100
 
+cnt = 0
+
 def write_to_file(path, data):
     sample_width = 2
     data = pack('<' + ('h'*len(data)), *data)
-
+    global cnt
+    cnt += 1
     wf = wave.open(path, 'wb')
     wf.setnchannels(1)
     wf.setsampwidth(sample_width)
@@ -131,11 +134,11 @@ def media_request():
     #test = np.array(request.data)
     print("Request size_file %d",size_chunk)
     print("Request request.data %d",request.data)
-    write_to_file('./data_voice/speec.wav', request.data)
+    write_to_file('./data_voice/speec_{}.wav'.format(cnt), request.data)
     # f = open('./data_voice/speec.wav', 'w+b')
     # f.write(request.data)
     # f.close()
-    path_to_wav = './data_voice/speec.wav'
+    path_to_wav = './data_voice/speec_{}.wav'.format(cnt)
     pred = speech_emotion.predict(path_to_wav)
 
     max_index = max(pred.items(), key=operator.itemgetter(1))[0]
