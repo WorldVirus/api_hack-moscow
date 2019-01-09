@@ -29,8 +29,6 @@ cnt = 0
 def write_to_file(path, data):
     sample_width = 2
     data = pack('<' + ('h'*len(data)), *data)
-    global cnt
-    cnt += 1
     wf = wave.open(path, 'wb')
     wf.setnchannels(1)
     wf.setsampwidth(sample_width)
@@ -128,6 +126,7 @@ def size_request():
 @app.route('/mediataker', methods = ['POST'])
 @cross_origin()
 def media_request():
+    global cnt
     print("Request data %s",request.data)
     app.logger.debug('Body: %s', request.get_data())
     app.logger.debug("Request Headers %s", request.headers)
@@ -139,6 +138,7 @@ def media_request():
     # f.write(request.data)
     # f.close()
     path_to_wav = './data_voice/speec_{}.wav'.format(cnt)
+    cnt += 1
     pred = speech_emotion.predict(path_to_wav)
 
     max_index = max(pred.items(), key=operator.itemgetter(1))[0]
