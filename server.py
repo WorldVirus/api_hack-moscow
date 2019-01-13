@@ -1,7 +1,7 @@
 import random,scipy
 import numpy as np
 
-from flask import Flask, render_template,json,jsonify,request,Response
+from flask import Flask,session,current_app,render_template,json,jsonify,request,Response
 
 from magic.magic import MagicWorker
 from flask_cors import CORS, cross_origin
@@ -16,19 +16,20 @@ from sys import byteorder
 from array import array
 from struct import pack
 
-import pyaudio
-import wave
+import uuid
 
-THRESHOLD = 500
-CHUNK_SIZE = 1024
-FORMAT = pyaudio.paInt16
+#import pyaudio
+import wave
+from flask_socketio import emit
+from flask_socketio import SocketIO, emit
+
 RATE = 44100
 
 cnt = 0
-
 def write_to_file(path, data):
     sample_width = 2
     data = pack('<' + ('h'*len(data)), *data)
+
     wf = wave.open(path, 'wb')
     wf.setnchannels(1)
     wf.setsampwidth(sample_width)
@@ -60,6 +61,9 @@ emotions = {
 _count_of_messages = 0
 
 app = Flask(__name__)
+socketio = SocketIO(app)
+app.config['FILEDIR'] = 'data_voice/'
+
 answer =""
 size_chunk = 0
 cors = CORS(app)
@@ -72,12 +76,6 @@ def hello():
     print(jsonify(jsonResp))
     return jsonify(jsonResp)
 
-
-@app.route('/uploads/<path:filename>', methods=['GET', 'POST'])
-@cross_origin()
-def download(filename):
-    uploads = os.path.join(current_app.root_path, app.config['UPLOAD_FOLDER'])
-    return send_from_directory(directory=uploads, filename=filename)
 
 def get_hello():
     greeting_list = ['Ciao', 'Hei', 'Salut', 'Hola', 'Hallo', 'Hej']
@@ -126,19 +124,17 @@ def size_request():
 @app.route('/mediataker', methods = ['POST'])
 @cross_origin()
 def media_request():
-    global cnt
     print("Request data %s",request.data)
     app.logger.debug('Body: %s', request.get_data())
     app.logger.debug("Request Headers %s", request.headers)
     #test = np.array(request.data)
     print("Request size_file %d",size_chunk)
     print("Request request.data %d",request.data)
-    write_to_file('./data_voice/speec_{}.wav'.format(cnt), request.data)
+    write_to_file('./data_voice/speec.wav', request.data)
     # f = open('./data_voice/speec.wav', 'w+b')
     # f.write(request.data)
     # f.close()
-    path_to_wav = './data_voice/speec_{}.wav'.format(cnt)
-    cnt += 1
+    path_to_wav = './data_voice/speec.wav'
     pred = speech_emotion.predict(path_to_wav)
 
     max_index = max(pred.items(), key=operator.itemgetter(1))[0]
@@ -149,14 +145,51 @@ def media_request():
 
     return "request"
 
-  
+@socketio.on('connect', namespace='/audio')
+def test_connect():
+    emit('my response', {'data': 'Herny'})
+
+@socketio.on('start-recording', namespace='/audio')
+def start_recording(options):
+    """Start recording audio from the client."""
+    print("hey oh")
+    id = uuid.uuid4().hex  # server-side filename
+    session['wavename'] = id + '.wav'
+    wf = wave.open(current_app.config['FILEDIR'] + session['wavename'], 'wb')
+    wf.setnchannels(options.get('numChannels', 1))
+    wf.setsampwidth(options.get('bps', 16) // 8)
+    wf.setframerate(options.get('fps', 44100))
+    session['wavefile'] = wf
+
+@socketio.on('write-audio', namespace='/audio')
+def write_audio(data):
+    """Write a chunk of audio from the client."""
+    session['wavefile'].writeframes(data)
+
+@socketio.on('end-recording', namespace='/audio')
+def end_recording():
+    """Stop recording audio from the client."""
+    emit('add-wavefile', url_for('static',
+                                 filename='_files/' + session['wavename']))
+    session['wavefile'].close()
+    del session['wavefile']
+    del session['wavename']
+    
 @app.route('/emotion', methods = ['GET'])
 @cross_origin()
 def emotion_request():
+    path_to_wav = './data_voice/her.wav'
+    pred = speech_emotion.predict(path_to_wav)
+
+    max_index = max(pred.items(), key=operator.itemgetter(1))[0]
+
+    emotions[max_index] += 1
+    #_count_of_messages = _count_of_messages + 1
+    emotions['len'] += 1
     ln = emotions['len']
     for key in emotions.keys():
         emotions[key] = int(emotions[key] / ln * 100)
-
+    print(emotions)
     response = app.response_class(
         response=json.dumps({'neutral': emotions["Neutral"]
         ,'happy':emotions["Happy"],'sad':emotions["Sad"],'angry':emotions["Angry"],'fear':emotions["Fear"],'not_enough':emotions["Not enough sonorancy to determine emotions"],'len':emotions["len"]}),

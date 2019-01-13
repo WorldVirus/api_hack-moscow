@@ -17,4 +17,8 @@ scipy==1.1.0
 virtualenv==16.0.0
 Werkzeug==0.14.1
 gensim==3.6.0
-pyaudio==0.2.11
+Flask-SocketIO==2.9.2
+greenlet==0.4.12
+eventlet==0.21.0
+python-engineio==1.7.0
+python-socketio==1.8.1
