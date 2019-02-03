@@ -120,10 +120,10 @@ def end_recording():
 @app.route('/emotion', methods = ['GET'])
 @cross_origin()
 def emotion_request():
-    ln = emotions['len']
+    print(emotions)
+    ln = emotions['len']+1
     for key in emotions.keys():
         emotions[key] = int(emotions[key] / ln * 100)
-    print(emotions)
     response = app.response_class(
         response=json.dumps({'neutral': emotions["Neutral"]
         ,'happy':emotions["Happy"],'sad':emotions["Sad"],'angry':emotions["Angry"],'fear':emotions["Fear"],'not_enough':emotions["Not enough sonorancy to determine emotions"],'len':emotions["len"]}),
