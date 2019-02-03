@@ -104,6 +104,7 @@ def write_audio(data):
 def end_recording():
     """Stop recording audio from the client."""
     emit('add-wavefile', {'data':'he'})
+    print("session")
     print(session)
     pred = speech_emotion.predict('./static/data_voice/'+session['wavename'])
 
