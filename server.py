@@ -87,6 +87,7 @@ def postJsonHandler():
 @socketio.on('start-recording', namespace='/audio')
 def start_recording(options):
     """Start recording audio from the client."""
+    print("start-recording")
     id = uuid.uuid4().hex + "" # server-side filename
     session['wavename'] = id + '.wav'
     wf = wave.open(current_app.config['FILEDIR'] + session['wavename'], 'wb')
@@ -97,6 +98,7 @@ def start_recording(options):
 
 @socketio.on('write-audio', namespace='/audio')
 def write_audio(data):
+     print("write-audio")
     """Write a chunk of audio from the client."""
     session['wavefile'].writeframes(data)
 
@@ -104,7 +106,7 @@ def write_audio(data):
 def end_recording():
     """Stop recording audio from the client."""
     emit('add-wavefile', {'data':'he'})
-    print("session")
+    print("end-recording")
     print(session)
     pred = speech_emotion.predict('./static/data_voice/'+session['wavename'])
 
