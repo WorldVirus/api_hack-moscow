@@ -98,14 +98,13 @@ def start_recording(options):
 
 @socketio.on('write-audio', namespace='/audio')
 def write_audio(data):
-     print("write-audio")
+    print("write-audio")
     """Write a chunk of audio from the client."""
     session['wavefile'].writeframes(data)
 
 @socketio.on('end-recording', namespace='/audio')
 def end_recording():
     """Stop recording audio from the client."""
-    emit('add-wavefile', {'data':'he'})
     print("end-recording")
     print(session)
     pred = speech_emotion.predict('./static/data_voice/'+session['wavename'])
@@ -124,7 +123,7 @@ def end_recording():
 @cross_origin()
 def emotion_request():
     print(emotions)
-    ln = emotions['len']+1
+    ln = emotions['len']
     for key in emotions.keys():
         emotions[key] = int(emotions[key] / ln * 100)
     response = app.response_class(
