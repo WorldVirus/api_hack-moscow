@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from pymorphy2 import MorphAnalyzer
 import re
 
@@ -11,7 +13,7 @@ class MagicWorker():
 
     def __get_classes__(self):
         classes, answers = [], []
-        with open('./magic/clusters.txt', 'r') as f:
+        with open('./magic/clusters.txt', 'r', encoding='utf-8') as f:
             for line in f:
                 tmp = list(line.split(', '))
                 tmp[-1] = tmp[-1].replace('\n', '')
